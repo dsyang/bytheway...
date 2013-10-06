@@ -1,8 +1,10 @@
 package com.dsyang.android.btw;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
 import android.view.*;
@@ -117,6 +119,8 @@ public class TaskFragment extends SherlockFragment
 
     @Override
     public void onLongPress(MotionEvent e) {
+        Vibrator vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(50);
         Log.d(TAG, "LongPress: did you actually finish?" + e.toString());
         Toast.makeText(getActivity(), "Show completed dialog", Toast.LENGTH_SHORT).show();
         handleCompletion();

@@ -1,12 +1,14 @@
 package com.dsyang.android.btw;
 
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.app.Activity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -44,6 +46,8 @@ public class MainFragment extends SherlockFragment {
     private SharedPreferences mPreferences;
     private TasksCollection mTasks;
 
+
+    private static SpeechRecognizer sSpeechRecognizer;
 
     public static MainFragment newInstance() {
         Bundle args = new Bundle();
@@ -88,25 +92,29 @@ public class MainFragment extends SherlockFragment {
             mMemoText = (EditText) v.findViewById(R.id.memo_text);
             mRecordButton = (ImageButton) v.findViewById(R.id.record_button);
 
-            mRecordButton.setOnClickListener( new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(getActivity(), "clicked", Toast.LENGTH_SHORT).show();
-                    Intent i = new Intent(
-                            RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                    i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+            sSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(getActivity());
+            sSpeechRecognizer.setRecognitionListener(new MyRecognitionListener(getActivity()));
 
-                    try {
-                        startActivityForResult(i, RESULT_SPEECH);
-                        mMemoText.setText("");
-                    } catch (ActivityNotFoundException e) {
-                        Toast.makeText(getActivity(),
-                                getString(R.string.no_speech_to_text_msg),
-                                Toast.LENGTH_LONG
-                        ).show();
+            mRecordButton.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    int action = event.getAction();
+                    Intent rec = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    rec.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    rec.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE ,"com.dsyang.android.btw");
+                    switch (action) {
+                        case MotionEvent.ACTION_DOWN:
+                            sSpeechRecognizer.startListening(rec);
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            sSpeechRecognizer.stopListening();
+                            break;
                     }
+                    return true;  //To change body of implemented methods use File | Settings | File Templates.
                 }
             });
+
         } else {
             showAllTasks();
         }
