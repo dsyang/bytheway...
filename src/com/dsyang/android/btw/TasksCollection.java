@@ -54,6 +54,9 @@ public class TasksCollection {
     }
 
     public Task getTask(int idx) {
+        if(0 > idx || idx >= mTasks.size()){
+            return new Task("Example, Call Home");
+        }
         return mTasks.get(idx);
     }
 
