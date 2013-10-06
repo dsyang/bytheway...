@@ -1,6 +1,8 @@
 package com.dsyang.android.btw;
 
+import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
@@ -24,6 +26,7 @@ import com.dsyang.android.btw.R;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Stack;
 
 /**
  * Created with IntelliJ IDEA.
@@ -38,16 +41,19 @@ public class MainFragment extends SherlockFragment {
     public final String TAG = this.getClass().getSimpleName();
     public static final String EXTRA_TASK_TEXT = "com.dsyang.android.btw.extra_task_text";
     public static final String EXTRA_TASK_DATE = "com.dsyang.android.btw.extra_task_date";
-    private static final int RESULT_SINGLE_TASK = 2;
-    private static final int RESULT_SPEECH = 1;
+    public static final int RESULT_SINGLE_TASK = 2;
+    public static final int RESULT_SPEECH = 1;
+
     private ImageButton mRecordButton;
     private EditText mMemoText;
     private TextView mIntroText;
     private SharedPreferences mPreferences;
     private TasksCollection mTasks;
+    private Stack<Task> mTaskStack;
 
-
+    public BroadcastReceiver mTasksDisplayer;
     private static SpeechRecognizer sSpeechRecognizer;
+
 
     public static MainFragment newInstance() {
         Bundle args = new Bundle();
@@ -74,6 +80,7 @@ public class MainFragment extends SherlockFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
         setHasOptionsMenu(true);
 
         mPreferences = getActivity().getSharedPreferences(getString(R.string.shard_pref_name), 0);
@@ -84,53 +91,62 @@ public class MainFragment extends SherlockFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_main, container, false);
-        /*mTasks.addTask(new Task("Call Mom!!"));
-        mTasks.addTask(new Task("Take out the trash"));
-        mTasks.addTask(new Task("Go to Office Hours"));*/
-        if (mTasks.isEmpty()) {
-            mIntroText = (TextView) v.findViewById(R.id.intro_text);
-            mMemoText = (EditText) v.findViewById(R.id.memo_text);
-            mRecordButton = (ImageButton) v.findViewById(R.id.record_button);
 
-            sSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(getActivity());
-            sSpeechRecognizer.setRecognitionListener(new MyRecognitionListener(getActivity()));
+        mIntroText = (TextView) v.findViewById(R.id.intro_text);
+        mMemoText = (EditText) v.findViewById(R.id.memo_text);
+        mRecordButton = (ImageButton) v.findViewById(R.id.record_button);
 
-            mRecordButton.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    int action = event.getAction();
-                    Intent rec = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                    rec.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                    rec.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE ,"com.dsyang.android.btw");
-                    switch (action) {
-                        case MotionEvent.ACTION_DOWN:
-                            sSpeechRecognizer.startListening(rec);
-                            break;
-                        case MotionEvent.ACTION_UP:
-                            sSpeechRecognizer.stopListening();
-                            break;
-                    }
-                    return true;  //To change body of implemented methods use File | Settings | File Templates.
+        sSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(getActivity());
+        sSpeechRecognizer.setRecognitionListener(new MyRecognitionListener(getActivity()));
+
+        mRecordButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                Intent rec = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                rec.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                rec.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE ,"com.dsyang.android.btw");
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                        sSpeechRecognizer.startListening(rec);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        sSpeechRecognizer.stopListening();
+                        break;
                 }
-            });
+                return true;  //To change body of implemented methods use File | Settings | File Templates.
+            }
+        });
 
-        } else {
-            showAllTasks();
+        if (!mTasks.isEmpty()) {
+            startActivity(new Intent(getActivity(), MultiTaskActivity.class));
         }
-
         return v;
     }
 
-    public void showAllTasks() {
-        for (int i = 0; i < mTasks.size(); i++) {
+    /*public void showTask() {
+        if(mTaskStack != null && !mTaskStack.empty()) {
+            Task t = mTaskStack.pop();
             Intent intent = new Intent(getActivity(), TaskActivity.class);
-            intent.putExtra(EXTRA_TASK_TEXT, mTasks.getTask(i).getText());
-            intent.putExtra(EXTRA_TASK_DATE, mTasks.getTask(i).getCreated());
-            if(i != mTasks.size()-1) {
-                intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-            }
+            intent.putExtra(EXTRA_TASK_TEXT, t.getText());
+            intent.putExtra(EXTRA_TASK_DATE, t.getCreated());
             startActivityForResult(intent, RESULT_SINGLE_TASK);
+        }
+    } */
+
+    public void startBroadcastReceiver() {
+        if (mTasksDisplayer == null) {
+            mTasksDisplayer = new TasksDisplayer();
+        }
+        IntentFilter intentf = new IntentFilter("ACTION_SCREEN_ON");
+        getActivity().registerReceiver(mTasksDisplayer, intentf);
+    }
+
+
+    public void stopBroadcastReceiver() {
+        if (mTasksDisplayer != null) {
+            getActivity().unregisterReceiver(mTasksDisplayer);
         }
     }
 
@@ -144,16 +160,10 @@ public class MainFragment extends SherlockFragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        switch (requestCode) {
-            case RESULT_SPEECH: {
-                if( resultCode == Activity.RESULT_OK && data != null) {
-                    ArrayList<String> text =
-                            data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    mMemoText.setText(text.get(0));
-                }
-
-            }
-
-        }
+/*        switch (requestCode) {
+            case RESULT_SINGLE_TASK:
+                if(mTaskStack != null && !mTaskStack.empty()) {
+                    showTask();
+                }*/
     }
 }

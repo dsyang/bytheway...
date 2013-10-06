@@ -74,6 +74,7 @@ public class TaskFragment extends SherlockFragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
         setHasOptionsMenu(true);
 
     }
