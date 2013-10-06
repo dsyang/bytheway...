@@ -123,14 +123,13 @@ public class TaskFragment extends SherlockFragment
         Vibrator vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(50);
         Log.d(TAG, "LongPress: did you actually finish?" + e.toString());
-        Toast.makeText(getActivity(), "Show completed dialog", Toast.LENGTH_SHORT).show();
         handleCompletion();
     }
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
         Log.d(TAG, "onDoubleTap: Dismiss!" + e.toString());
-        Toast.makeText(getActivity(), "I'll come back later", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getActivity(), "Dismissed", Toast.LENGTH_SHORT).show();
         handleDismiss();
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }

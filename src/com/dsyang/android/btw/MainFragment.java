@@ -41,6 +41,7 @@ public class MainFragment extends SherlockFragment {
     public final String TAG = this.getClass().getSimpleName();
     public static final String EXTRA_TASK_TEXT = "com.dsyang.android.btw.extra_task_text";
     public static final String EXTRA_TASK_DATE = "com.dsyang.android.btw.extra_task_date";
+    public static final String PREF_IS_RECEIVER_ACTIVE = "com.dsyang.android.btw.preference.receiver_active";
     public static final int RESULT_SINGLE_TASK = 2;
     public static final int RESULT_SPEECH = 1;
 
@@ -52,7 +53,6 @@ public class MainFragment extends SherlockFragment {
     private Stack<Task> mTaskStack;
 
     public BroadcastReceiver mTasksDisplayer;
-    public static boolean sReceiverOn;
     private static SpeechRecognizer sSpeechRecognizer;
 
 
@@ -68,11 +68,21 @@ public class MainFragment extends SherlockFragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_fragment_main, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_register:
+                startBroadcastReceiver();
+                return true;
+            case R.id.menu_unregister:
+                stopBroadcastReceiver();
+                return true;
+            case R.id.menu_reset:
+                mPreferences.edit().clear().commit();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -132,12 +142,15 @@ public class MainFragment extends SherlockFragment {
 
     public void startBroadcastReceiver() {
         if (mTasksDisplayer == null) {
-            mTasksDisplayer = new TasksDisplayer();
+            mTasksDisplayer = ScreenReceiver.get();
         }
+
+        boolean receiverOn = mPreferences.contains(PREF_IS_RECEIVER_ACTIVE)
+                          && mPreferences.getBoolean(PREF_IS_RECEIVER_ACTIVE, true);
         IntentFilter intentf = new IntentFilter(Intent.ACTION_SCREEN_ON);
 
-        if (!sReceiverOn) {
-            sReceiverOn = true;
+        if (!receiverOn) {
+            mPreferences.edit().putBoolean(PREF_IS_RECEIVER_ACTIVE, true).commit();
             Log.d(TAG, "Started BR");
             getActivity().registerReceiver(mTasksDisplayer, intentf);
         } else {
@@ -148,7 +161,12 @@ public class MainFragment extends SherlockFragment {
 
     public void stopBroadcastReceiver() {
         if (mTasksDisplayer != null) {
-            getActivity().unregisterReceiver(mTasksDisplayer);
+            try {
+                getActivity().unregisterReceiver(mTasksDisplayer);
+            } catch (IllegalArgumentException e) {
+                mPreferences.edit().putBoolean(PREF_IS_RECEIVER_ACTIVE, false).commit();
+                Log.d(TAG, "BR not registered");
+            }
         }
         Log.d(TAG, "Stopped BR");
     }

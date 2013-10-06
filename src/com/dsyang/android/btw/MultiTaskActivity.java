@@ -2,6 +2,7 @@ package com.dsyang.android.btw;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -20,6 +21,7 @@ import java.util.Stack;
 public class MultiTaskActivity extends SherlockActivity {
 
     private static Stack<Task> sTaskStack;
+    private SharedPreferences mPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +30,13 @@ public class MultiTaskActivity extends SherlockActivity {
         sTaskStack = new Stack<Task>();
         sTaskStack.addAll(TasksCollection.get(this).getTasks());
 
+        mPreferences = getSharedPreferences(getString(R.string.shard_pref_name), 0);
         if(sTaskStack.isEmpty()) {
-            Log.d("MainFragment", "NOOOPPPPEEE");
+            if(mPreferences.getBoolean(MainFragment.PREF_IS_RECEIVER_ACTIVE, true)) {
+                Log.d("MainFragment", "Unregestered");
+                unregisterReceiver(ScreenReceiver.get());
+                mPreferences.edit().putBoolean(MainFragment.PREF_IS_RECEIVER_ACTIVE, false).commit();
+            }
             finish();
         } else {
             Task t = sTaskStack.pop();

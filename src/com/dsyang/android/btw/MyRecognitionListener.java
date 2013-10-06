@@ -1,6 +1,9 @@
 package com.dsyang.android.btw;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -23,12 +26,14 @@ public class MyRecognitionListener implements RecognitionListener {
     private MediaPlayer mStartRecordingPlayer;
     private MediaPlayer mStopRecordingPlayer;
     private Context mContext;
+    private SharedPreferences mPreferences;
 
     public MyRecognitionListener(Context c) {
         mContext = c;
         mStartRecordingPlayer = MediaPlayer.create(c, R.raw.start_record);
         mStopRecordingPlayer = MediaPlayer.create(c, R.raw.stop_record);
 
+        mPreferences = c.getApplicationContext().getSharedPreferences(c.getString(R.string.shard_pref_name),0);
     }
 
     @Override
@@ -70,10 +75,22 @@ public class MyRecognitionListener implements RecognitionListener {
     @Override
     public void onResults(Bundle results) {
         ArrayList<String> res = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        Log.d("MainFragment", "RResults" + res.toString());
         TasksCollection.get(mContext).addTask(new Task(res.get(0)));
-        Toast.makeText(mContext, res.get(0), Toast.LENGTH_LONG).show();
+        Toast.makeText(mContext, res.get(0), Toast.LENGTH_SHORT).show();
+        boolean receiverOn = mPreferences.contains(MainFragment.PREF_IS_RECEIVER_ACTIVE)
+                && mPreferences.getBoolean(MainFragment.PREF_IS_RECEIVER_ACTIVE, true);
+        Log.d("MainFragment", "RResults" + res.toString() + receiverOn);
+        if (!receiverOn) {
+            startReceiver();
+        }
+    }
 
+    private void startReceiver() {
+        mPreferences.edit().putBoolean(MainFragment.PREF_IS_RECEIVER_ACTIVE, true).commit();
+        Log.d(TAG, "Starting BR from recognition listener "
+                + mPreferences.getBoolean(MainFragment.PREF_IS_RECEIVER_ACTIVE, false));
+        IntentFilter intentf = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        mContext.getApplicationContext().registerReceiver(ScreenReceiver.get(), intentf);
     }
 
     @Override
