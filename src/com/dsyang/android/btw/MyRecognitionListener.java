@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -23,14 +24,14 @@ import java.util.ArrayList;
 public class MyRecognitionListener implements RecognitionListener {
     private final String TAG = this.getClass().getSimpleName();
 
-    private MediaPlayer mStartRecordingPlayer;
     private MediaPlayer mStopRecordingPlayer;
     private Context mContext;
+    private TextView mMemoText;
     private SharedPreferences mPreferences;
 
-    public MyRecognitionListener(Context c) {
+    public MyRecognitionListener(Context c, TextView lastOne) {
         mContext = c;
-        mStartRecordingPlayer = MediaPlayer.create(c, R.raw.start_record);
+        mMemoText = lastOne;
         mStopRecordingPlayer = MediaPlayer.create(c, R.raw.stop_record);
 
         mPreferences = c.getApplicationContext().getSharedPreferences(c.getString(R.string.shard_pref_name),0);
@@ -76,6 +77,7 @@ public class MyRecognitionListener implements RecognitionListener {
     public void onResults(Bundle results) {
         ArrayList<String> res = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         TasksCollection.get(mContext).addTask(new Task(res.get(0)));
+        mMemoText.setText(res.get(0));
         Toast.makeText(mContext, res.get(0), Toast.LENGTH_SHORT).show();
         boolean receiverOn = mPreferences.contains(MainFragment.PREF_IS_RECEIVER_ACTIVE)
                 && mPreferences.getBoolean(MainFragment.PREF_IS_RECEIVER_ACTIVE, true);

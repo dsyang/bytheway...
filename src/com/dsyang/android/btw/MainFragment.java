@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.app.Activity;
@@ -46,8 +47,7 @@ public class MainFragment extends SherlockFragment {
     public static final int RESULT_SPEECH = 1;
 
     private ImageButton mRecordButton;
-    private EditText mMemoText;
-    private TextView mIntroText;
+    private TextView mMemoText;
     private SharedPreferences mPreferences;
     private TasksCollection mTasks;
     private Stack<Task> mTaskStack;
@@ -74,6 +74,9 @@ public class MainFragment extends SherlockFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_help:
+                showHelpDialog();
+                return true;
             case R.id.menu_register:
                 startBroadcastReceiver();
                 return true;
@@ -86,6 +89,13 @@ public class MainFragment extends SherlockFragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void showHelpDialog() {
+        FragmentManager fm = getSherlockActivity().getSupportFragmentManager();
+        HelpDialogFragment dialog = new HelpDialogFragment();
+
+        dialog.show(fm, "HelpDialog");
     }
 
     @Override
@@ -103,13 +113,13 @@ public class MainFragment extends SherlockFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_main, container, false);
 
-        mIntroText = (TextView) v.findViewById(R.id.intro_text);
-        mMemoText = (EditText) v.findViewById(R.id.memo_text);
-        mRecordButton = (ImageButton) v.findViewById(R.id.record_button);
+        mMemoText = (TextView) v.findViewById(R.id.last_memo);
+        mMemoText.setText(mTasks.getTask(mTasks.size()-1).getText());
 
         sSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(getActivity());
-        sSpeechRecognizer.setRecognitionListener(new MyRecognitionListener(getActivity()));
+        sSpeechRecognizer.setRecognitionListener(new MyRecognitionListener(getActivity(), mMemoText));
 
+        mRecordButton = (ImageButton) v.findViewById(R.id.record_button);
         mRecordButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {

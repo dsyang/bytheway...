@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_help"
+          android:title="Help"
+          android:icon="@android:drawable/ic_menu_info_details"
+          android:showAsAction="ifRoom|withText"/>
     <item android:id="@+id/menu_register"
           android:title="Register"
           android:showAsAction="withText"/>
     <item android:id="@+id/menu_unregister"
           android:title="Unregister"
-          android:showAsAction="ifRoom|withText"/>
+          android:showAsAction="withText"/>
     <item android:id="@+id/menu_reset"
           android:title="Reset Receiver"
           android:showAsAction="withText"/>
