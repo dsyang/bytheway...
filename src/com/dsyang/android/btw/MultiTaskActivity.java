@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import com.actionbarsherlock.app.SherlockActivity;
 
@@ -23,11 +24,12 @@ public class MultiTaskActivity extends SherlockActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);    //To change body of overridden methods use File | Settings | File Templates.
-
+        Log.d("MainFragment", "showMultiTasks");
         sTaskStack = new Stack<Task>();
         sTaskStack.addAll(TasksCollection.get(this).getTasks());
 
         if(sTaskStack.isEmpty()) {
+            Log.d("MainFragment", "NOOOPPPPEEE");
             finish();
         } else {
             Task t = sTaskStack.pop();
@@ -39,6 +41,7 @@ public class MultiTaskActivity extends SherlockActivity {
         Intent intent = new Intent(this, TaskActivity.class);
         intent.putExtra(MainFragment.EXTRA_TASK_TEXT, t.getText());
         intent.putExtra(MainFragment.EXTRA_TASK_DATE, t.getCreated());
+        Log.d("MainFragment", "do: " + t.getText());
         startActivityForResult(intent, MainFragment.RESULT_SINGLE_TASK);
 
     }

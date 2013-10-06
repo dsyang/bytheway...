@@ -52,6 +52,7 @@ public class MainFragment extends SherlockFragment {
     private Stack<Task> mTaskStack;
 
     public BroadcastReceiver mTasksDisplayer;
+    public static boolean sReceiverOn;
     private static SpeechRecognizer sSpeechRecognizer;
 
 
@@ -115,32 +116,33 @@ public class MainFragment extends SherlockFragment {
                         sSpeechRecognizer.stopListening();
                         break;
                 }
-                return true;  //To change body of implemented methods use File | Settings | File Templates.
+                return true;
             }
         });
 
         if (!mTasks.isEmpty()) {
             startActivity(new Intent(getActivity(), MultiTaskActivity.class));
+            startBroadcastReceiver();
+        } else {
+            stopBroadcastReceiver();
         }
         return v;
     }
 
-    /*public void showTask() {
-        if(mTaskStack != null && !mTaskStack.empty()) {
-            Task t = mTaskStack.pop();
-            Intent intent = new Intent(getActivity(), TaskActivity.class);
-            intent.putExtra(EXTRA_TASK_TEXT, t.getText());
-            intent.putExtra(EXTRA_TASK_DATE, t.getCreated());
-            startActivityForResult(intent, RESULT_SINGLE_TASK);
-        }
-    } */
 
     public void startBroadcastReceiver() {
         if (mTasksDisplayer == null) {
             mTasksDisplayer = new TasksDisplayer();
         }
-        IntentFilter intentf = new IntentFilter("ACTION_SCREEN_ON");
-        getActivity().registerReceiver(mTasksDisplayer, intentf);
+        IntentFilter intentf = new IntentFilter(Intent.ACTION_SCREEN_ON);
+
+        if (!sReceiverOn) {
+            sReceiverOn = true;
+            Log.d(TAG, "Started BR");
+            getActivity().registerReceiver(mTasksDisplayer, intentf);
+        } else {
+            Log.d(TAG, "Receiver already started.");
+        }
     }
 
 
@@ -148,6 +150,7 @@ public class MainFragment extends SherlockFragment {
         if (mTasksDisplayer != null) {
             getActivity().unregisterReceiver(mTasksDisplayer);
         }
+        Log.d(TAG, "Stopped BR");
     }
 
     @Override
@@ -155,15 +158,4 @@ public class MainFragment extends SherlockFragment {
         super.onSaveInstanceState(savedInstanceState);
     }
 
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-/*        switch (requestCode) {
-            case RESULT_SINGLE_TASK:
-                if(mTaskStack != null && !mTaskStack.empty()) {
-                    showTask();
-                }*/
-    }
 }
