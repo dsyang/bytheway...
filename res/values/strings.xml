@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">By The Way...</string>
+    <string name="shard_pref_name">com.dsyang.android.btw.preferences</string>
+    <string name="intro_text">Press the button to record a message.</string>
+    <string name="completed_button">Done</string>
+    <string name="completed_dialog_title">Completed Task</string>
+    <string name="completed_dialog_message">Did you really finish this task?</string>
+    <string name="completed_dialog_ok">Yes</string>
+    <string name="completed_dialog_no">Sorry, I lied</string>
+    <string name="no_speech_to_text_msg">Your device does not support Speech to Text.</string>
+</resources>

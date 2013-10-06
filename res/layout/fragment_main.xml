@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical"
+              android:baselineAligned="false">
+    <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="32dp"
+            android:text="@string/intro_text"
+            android:id="@+id/intro_text"
+            android:gravity="bottom" android:paddingBottom="5dp" android:textColor="#333333"
+            />
+    <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/memo_text" android:layout_gravity="center_horizontal" android:focusable="true"
+            android:editable="true" android:clickable="true"/>
+
+    <ImageButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/record_button"
+            android:contentDescription="Press to Record a message"
+            android:cropToPadding="false" android:layout_margin="21dp"
+            android:focusableInTouchMode="false" android:clickable="false" android:src="@drawable/record"
+            android:background="@null"/>
+
+</LinearLayout>
+
